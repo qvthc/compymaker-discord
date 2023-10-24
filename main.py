@@ -1,4 +1,4 @@
-import discord
+import discord, json
 from discord.ext import commands
 
 with open('config.json', 'r') as config_file:
@@ -15,6 +15,26 @@ def is_link_duplicate(link):
 async def send_embed(ctx, title, description, color=discord.Color.blue()):
     embed = discord.Embed(title=title, description=description, color=color)
     await ctx.send(embed=embed)
+
+
+def add_link(link):
+    with open("links.txt", "a") as file:
+        file.write(link + "\n")
+
+def remove_link(link):
+    with open("links.txt", "r") as file:
+        lines = file.readlines()
+    
+    with open("links.txt", "w") as file:
+        for line in lines:
+            if line.strip() != link:
+                file.write(line)
+
+def count_links():
+    with open("links.txt", "r") as file:
+        lines = file.readlines()
+    return len(lines)
+
 
 @bot.event
 async def on_ready():
@@ -42,11 +62,10 @@ async def link_count(ctx):
     await send_embed(ctx, "Link Count", f"Number of links in links.txt: {count}", discord.Color.blue())
 
 @bot.command()
-async def purge(ctx):
+async def purge(ctx, num: int):
     try:
-        with open("links.txt", "w") as file:
-            file.write("")
-        await send_embed(ctx, "Purge Complete", "All links removed from links.txt.", discord.Color.green())
+        await ctx.channel.purge(limit=num)
+        await send_embed(ctx, "Purge Complete", "Messages have been removed.", discord.Color.green())
     except Exception as e:
         await send_embed(ctx, "Purge Failed", f"An error occurred: {e}", discord.Color.red())
 
